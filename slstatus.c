@@ -18,7 +18,7 @@ struct arg {
 };
 
 char buf[1024];
-static volatile sig_atomic_t done;
+static volatile sig_atomic_t done, refresh;
 static Display *dpy;
 
 #include "config.h"
@@ -26,7 +26,9 @@ static Display *dpy;
 static void
 terminate(const int signo)
 {
-	if (signo != SIGUSR1)
+	if (signo == SIGUSR1)
+		refresh = 1;
+	else
 		done = 1;
 }
 
@@ -76,7 +78,6 @@ main(int argc, char *argv[])
 	act.sa_handler = terminate;
 	sigaction(SIGINT,  &act, NULL);
 	sigaction(SIGTERM, &act, NULL);
-	act.sa_flags |= SA_RESTART;
 	sigaction(SIGUSR1, &act, NULL);
 
 	if (!sflag && !(dpy = XOpenDisplay(NULL)))
@@ -118,10 +119,15 @@ main(int argc, char *argv[])
 			intspec.tv_nsec = (interval % 1000) * 1E6;
 			difftimespec(&wait, &intspec, &diff);
 
-			if (wait.tv_sec >= 0 &&
-			    nanosleep(&wait, NULL) < 0 &&
-			    errno != EINTR)
-					die("nanosleep:");
+			if (wait.tv_sec >= 0) {
+				while (!refresh) {
+					if (nanosleep(&wait, &wait) == 0)
+						break;
+					if (errno != EINTR)
+						die("nanosleep:");
+				}
+			}
+			refresh = 0;
 		}
 	} while (!done);
 

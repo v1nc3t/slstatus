@@ -1,5 +1,8 @@
 /* See LICENSE file for copyright and license details. */
 
+/* backlight */
+const char *backlight(const char *dir);
+
 /* battery */
 const char *battery_perc(const char *);
 const char *battery_remaining(const char *);

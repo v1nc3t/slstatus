@@ -54,6 +54,10 @@ const char *netspeed_tx(const char *interface);
 /* num_files */
 const char *num_files(const char *path);
 
+/* pipewire */
+const char *pwsink(const char *unused);
+const char *pwsource(const char *unused);
+
 /* ram */
 const char *ram_free(const char *unused);
 const char *ram_perc(const char *unused);
